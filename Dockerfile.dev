@@ -1,0 +1,42 @@
+FROM codercom/enterprise-base:ubuntu
+
+# Switch to root for installation
+USER root
+
+ENV NVM_DIR=/usr/local/nvm
+ENV NODE_VERSION=20
+ENV NODE_PATH=$NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH=$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    wget \
+    git \
+    ca-certificates \
+    bash && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p $NVM_DIR && chmod 755 $NVM_DIR
+
+RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+SHELL ["/bin/bash", "-c"]
+RUN source $NVM_DIR/nvm.sh && \
+    nvm install $NODE_VERSION && \
+    nvm use $NODE_VERSION && \
+    nvm alias default $NODE_VERSION && \
+    npm install -g yarn
+
+RUN echo "export NVM_DIR=/usr/local/nvm" >> /etc/bash.bashrc && \
+    echo "[ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\"" >> /etc/bash.bashrc && \
+    echo "[ -s \"$NVM_DIR/bash_completion\" ] && \. \"$NVM_DIR/bash_completion\"" >> /etc/bash.bashrc
+
+RUN source $NVM_DIR/nvm.sh && \
+    node --version && \
+    npm --version && \
+    yarn --version
+
+USER coder
+
+CMD ["/bin/bash"]
