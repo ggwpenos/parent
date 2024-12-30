@@ -1,17 +1,67 @@
 FROM codercom/enterprise-base:ubuntu
-
-# Run everything as root
 USER root
 
-# Install whichever Node version is LTS
-RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
-RUN DEBIAN_FRONTEND="noninteractive" apt-get update -y && \
-    apt-get install -y nodejs
+# Save NVM version and node version as build args
+ARG NVM_VERSION=v0.39.7
+ARG NODE_VERSION=20.11.0
 
-# Install Yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get install -y yarn
+# Add script progress echo markers
+RUN echo "🚀 Starting development environment setup..."
 
-# Set back to coder user
+# Install essential build tools and curl
+RUN echo "📦 Installing basic dependencies..." && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    ca-certificates \
+    && echo "✅ Basic dependencies installed"
+
+# Setup the coder user
+RUN echo "👤 Setting up coder user..." && \
+    useradd -ms /bin/bash coder && \
+    echo "✅ Coder user created"
+
+# Switch to coder user for NVM installation
 USER coder
+WORKDIR /home/coder
+
+# Install NVM
+RUN echo "📥 Installing NVM ${NVM_VERSION}..." && \
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
+    echo "✅ NVM installation script completed"
+
+# Add NVM to bash profile and environment
+RUN echo "🔧 Configuring NVM environment..." && \
+    echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.bashrc && \
+    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> ~/.bashrc && \
+    echo "✅ NVM environment configured"
+
+# Install Node.js using NVM (this runs in a new shell to access NVM)
+RUN echo "📥 Installing Node.js ${NODE_VERSION}..." && \
+    bash -c 'source $HOME/.nvm/nvm.sh && \
+    nvm install ${NODE_VERSION} && \
+    nvm alias default ${NODE_VERSION} && \
+    nvm use default' && \
+    echo "✅ Node.js installation completed"
+
+# Verify installations in a new shell
+RUN echo "🔍 Verifying installations..." && \
+    bash -c 'source $HOME/.nvm/nvm.sh && \
+    echo "NVM Version: $(nvm --version)" && \
+    echo "Node Version: $(node --version)" && \
+    echo "NPM Version: $(npm --version)"' && \
+    echo "✅ All verifications completed"
+
+# Set workspace directory
+WORKDIR /workspaces
+
+# Add final success message
+RUN echo "🎉 Development environment setup completed successfully!"
+
+USER coder
+
+
+CMD ["/bin/bash"]
