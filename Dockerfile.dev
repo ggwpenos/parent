@@ -1,7 +1,7 @@
 FROM codercom/enterprise-base:ubuntu
 
 # Save NVM version and node version as build args
-USER root
+USER coder
 
 ARG NVM_VERSION=v0.39.7
 ARG NODE_VERSION=20.11.0
@@ -9,15 +9,15 @@ ARG NODE_VERSION=20.11.0
 # Add script progress echo markers
 RUN echo "🚀 Starting development environment setup..."
 
-# Install essential build tools and curl
-RUN echo "📦 Installing basic dependencies..." && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    curl \
-    git \
-    build-essential \
-    ca-certificates \
-    && echo "✅ Basic dependencies installed"
+# # Install essential build tools and curl
+# RUN echo "📦 Installing basic dependencies..." && \
+#     apt-get update && \
+#     DEBIAN_FRONTEND=noninteractive apt-get install -y \
+#     curl \
+#     git \
+#     build-essential \
+#     ca-certificates \
+#     && echo "✅ Basic dependencies installed"
 
 RUN echo "📥 Installing NVM ${NVM_VERSION}..." && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
@@ -38,7 +38,6 @@ RUN echo "📥 Installing Node.js ${NODE_VERSION}..." && \
     nvm use default' && \
     echo "✅ Node.js installation completed"
 
-# Verify installations in a new shell
 RUN echo "🔍 Verifying installations..." && \
     bash -c 'source $HOME/.nvm/nvm.sh && \
     echo "NVM Version: $(nvm --version)" && \
@@ -46,11 +45,9 @@ RUN echo "🔍 Verifying installations..." && \
     echo "NPM Version: $(npm --version)"' && \
     echo "✅ All verifications completed"
 
-# Set workspace directory
 WORKDIR /workspaces
 
-# Add final success message
 RUN echo "🎉 Development environment setup completed successfully!"
-USER coder
+# USER coder
 
 CMD ["/bin/bash"]
