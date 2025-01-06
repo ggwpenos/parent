@@ -1,7 +1,8 @@
 FROM codercom/enterprise-base:ubuntu
-USER root
 
 # Save NVM version and node version as build args
+USER root
+
 ARG NVM_VERSION=v0.39.7
 ARG NODE_VERSION=20.11.0
 
@@ -19,13 +20,11 @@ RUN echo "📦 Installing basic dependencies..." && \
     && echo "✅ Basic dependencies installed"
 
 # Setup the coder user
-RUN echo "👤 Setting up coder user..." && \
-    useradd -ms /bin/bash coder && \
-    echo "✅ Coder user created"
+# RUN echo "👤 Setting up coder user..." && \
+#     useradd -ms /bin/bash coder && \
+#     echo "✅ Coder user created"
 
 # Switch to coder user for NVM installation
-USER coder
-WORKDIR /home/coder
 
 # Install NVM
 RUN echo "📥 Installing NVM ${NVM_VERSION}..." && \
@@ -60,8 +59,6 @@ WORKDIR /workspaces
 
 # Add final success message
 RUN echo "🎉 Development environment setup completed successfully!"
-
 USER coder
-
 
 CMD ["/bin/bash"]
